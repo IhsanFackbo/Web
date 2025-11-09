@@ -1,14 +1,17 @@
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata = {
   title: "Docs Portal",
-  description: "Interactive Docs Portal with Dark/Light, Auth, Email, and database.json export",
+  description: "Interactive Docs Portal with Auth + Email",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
