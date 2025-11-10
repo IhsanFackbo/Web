@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_API_BASE || "https://ryous-ap.vercel.app/";
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_API_BASE || "";
 
 const noTrail = (u) => {
   const s = (u || "").toString();
@@ -61,8 +61,7 @@ export default function DocsPortal() {
       if (!reqName) setReqName(effectiveUser.name || "");
       if (!reqEmail) setReqEmail(effectiveUser.email || "");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveUser]);
+  }, [effectiveUser]); // eslint-disable-line
 
   const showToast = (m) => { setToast(m); setTimeout(() => setToast(null), 2200); };
 
@@ -87,47 +86,37 @@ export default function DocsPortal() {
   const logoutLocal = () => { setLocalUser(null); if (typeof window !== "undefined") localStorage.removeItem("portal_user_local"); };
 
   // ---- SEND REQUEST (server email via /api) ----
-  // ---- SEND REQUEST (server email via /api) ----
-const submitRequest = async (e) => {
-  e.preventDefault();
-  if (sending) return; // guard
-  if (Date.now() - submitGuard.current < 1000) return; // debounce 1s
-  submitGuard.current = Date.now();
+  const submitRequest = async (e) => {
+    e.preventDefault();
+    if (sending) return; // guard
+    if (Date.now() - submitGuard.current < 1000) return; // debounce 1s
+    submitGuard.current = Date.now();
 
-  if (!reqName || !reqEmail || !reqSubject || !reqMessage) {
-    return showToast("Lengkapi semua field");
-  }
+    if (!reqName || !reqEmail || !reqSubject || !reqMessage) return showToast("Lengkapi semua field");
+    setSending(true);
 
-  setSending(true);
-  try {
-    const res = await fetch("/api/send-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: reqName,
-        email: reqEmail,
-        subject: reqSubject,
-        message: reqMessage,
-        user: effectiveUser
-          ? { name: effectiveUser.name, email: effectiveUser.email }
-          : null,
-      }),
-    });
-
-    const js = await res.json();
-    if (!res.ok || !js?.ok) {
-      throw new Error(js?.error || "Gagal kirim");
+    try {
+      const res = await fetch("/api/send-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: reqName,
+          email: reqEmail,
+          subject: reqSubject,
+          message: reqMessage,
+          user: effectiveUser ? { name: effectiveUser.name, email: effectiveUser.email } : null,
+        }),
+      });
+      const js = await res.json();
+      if (!res.ok || !js.ok) throw new Error(js.error || "Gagal kirim");
+      showToast("Terkirim ke email admin ✅");
+      setReqSubject(""); setReqMessage("");
+    } catch (err) {
+      showToast(err.message || "Gagal kirim");
+    } finally {
+      setSending(false);
     }
-
-    showToast("Terkirim ke email admin ✅");
-    setReqSubject("");
-    setReqMessage("");
-  } catch (err) {
-    showToast(err?.message || "Gagal kirim");
-  } finally {
-    setSending(false);
-  }
-};
+  };
 
   const Card = ({ children, className = "" }) => (
     <div className={`rounded-2xl p-5 bg-white/60 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800 shadow-sm ${className}`}>
@@ -192,7 +181,7 @@ const submitRequest = async (e) => {
             <GButton type="submit" className={sending ? "opacity-60 pointer-events-none" : ""}>
               {sending ? "Mengirim..." : "Kirim"}
             </GButton>
-            {!effectiveUser and <span className="text-xs opacity-70">* Login untuk auto‑fill</span>}
+            {!effectiveUser && <span className="text-xs opacity-70">* Login untuk auto‑fill</span>}
           </div>
         </form>
       </Card>
