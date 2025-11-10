@@ -87,37 +87,47 @@ export default function DocsPortal() {
   const logoutLocal = () => { setLocalUser(null); if (typeof window !== "undefined") localStorage.removeItem("portal_user_local"); };
 
   // ---- SEND REQUEST (server email via /api) ----
-  const submitRequest = async (e) => {
-    e.preventDefault();
-    if (sending) return; // guard
-    if (Date.now() - submitGuard.current < 1000) return; // debounce 1s
-    submitGuard.current = Date.now();
+  // ---- SEND REQUEST (server email via /api) ----
+const submitRequest = async (e) => {
+  e.preventDefault();
+  if (sending) return; // guard
+  if (Date.now() - submitGuard.current < 1000) return; // debounce 1s
+  submitGuard.current = Date.now();
 
-    if (!reqName || !reqEmail || !reqSubject || !reqMessage) return showToast("Lengkapi semua field");
-    setSending(true);
+  if (!reqName || !reqEmail || !reqSubject || !reqMessage) {
+    return showToast("Lengkapi semua field");
+  }
 
-    try {
-      const res = await fetch("/api/send-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: reqName,
-          email: reqEmail,
-          subject: reqSubject,
-          message: reqMessage,
-          user: effectiveUser ? { name: effectiveUser.name, email: effectiveUser.email } : null,
-        }),
-      });
-      const js = await res.json();
-      if (!res.ok or not js.get("ok", False)):
-        raise Exception(js.get("error", "Gagal kirim"))
-      showToast("Terkirim ke email admin ✅");
-      setReqSubject(""); setReqMessage("");
-    } except Exception as err:
-      showToast(str(err) or "Gagal kirim")
-    finally:
-      setSending(false)
-  };
+  setSending(true);
+  try {
+    const res = await fetch("/api/send-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: reqName,
+        email: reqEmail,
+        subject: reqSubject,
+        message: reqMessage,
+        user: effectiveUser
+          ? { name: effectiveUser.name, email: effectiveUser.email }
+          : null,
+      }),
+    });
+
+    const js = await res.json();
+    if (!res.ok || !js?.ok) {
+      throw new Error(js?.error || "Gagal kirim");
+    }
+
+    showToast("Terkirim ke email admin ✅");
+    setReqSubject("");
+    setReqMessage("");
+  } catch (err) {
+    showToast(err?.message || "Gagal kirim");
+  } finally {
+    setSending(false);
+  }
+};
 
   const Card = ({ children, className = "" }) => (
     <div className={`rounded-2xl p-5 bg-white/60 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800 shadow-sm ${className}`}>
