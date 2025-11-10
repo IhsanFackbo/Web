@@ -318,24 +318,67 @@ export default function DocsPortal() {
       <main className="max-w-xl mx-auto px-4 py-6">{children}</main>
 
       {/* FAB */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {menuOpen && (
-          <div className="mb-3 w-52 rounded-2xl p-3 bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 shadow-xl backdrop-blur">
-            <div className="grid gap-2">
-              {TABS.map((t) => (
-                <button key={t} onClick={() => { setTab(t); setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm border transition ${tab === t ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-300" : "bg-white/70 dark:bg-zinc-900/60 text-zinc-700 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800 hover:shadow"}`}>
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <button onClick={() => setMenuOpen(v => !v)} aria-label="Menu"
-          className="w-14 h-14 rounded-full shadow-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white text-lg flex items-center justify-center">
-          {menuOpen ? "✕" : "☰"}
+<div className="fixed bottom-6 right-6 z-50">
+  {/* Panel yang “muncul dari lingkaran” */}
+  <div
+    // absolut di dalam wrapper fixed => tidak menggeser tombol
+    className="absolute bottom-16 right-0"
+    style={{
+      // ukuran panel
+      width: 220,
+      // bubble card
+      background: "rgba(24,24,27,0.92)",
+      border: "1px solid rgba(82,82,91,0.6)",
+      borderRadius: 16,
+      boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      // animasi keluar dari titik FAB (pojok kanan bawah)
+      clipPath: menuOpen
+        ? "circle(420px at 100% 100%)"
+        : "circle(0px at 100% 100%)",
+      opacity: menuOpen ? 1 : 0,
+      transition:
+        "clip-path 380ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease",
+      pointerEvents: menuOpen ? "auto" : "none",
+    }}
+  >
+    <div className="p-3">
+      {["Home", "Send Request", "API", "API Docs", "Settings"].map((t) => (
+        <button
+          key={t}
+          onClick={() => {
+            setTab(t);
+            setMenuOpen(false);
+            if (typeof window !== "undefined") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-sm border transition mb-2 last:mb-0 ${
+            tab === t
+              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-300"
+              : "bg-black/30 dark:bg-zinc-900/60 text-zinc-200 border-zinc-700 hover:bg-black/40"
+          }`}
+        >
+          {t}
         </button>
-      </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Tombol bulat — tidak bergeser karena fixed & panel absolute */}
+  <button
+    onClick={() => setMenuOpen((v) => !v)}
+    aria-label="Menu"
+    className="w-14 h-14 rounded-full shadow-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white text-lg flex items-center justify-center select-none"
+    style={{
+      transform: menuOpen ? "rotate(45deg)" : "rotate(0deg)",
+      transition: "transform 220ms ease",
+    }}
+  >
+    +
+  </button>
+</div>
 
       <footer className="max-w-xl mx-auto px-4 pb-8 text-xs opacity-70">© {new Date().getFullYear()} Docs Portal.</footer>
 
