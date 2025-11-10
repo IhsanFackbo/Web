@@ -1,4 +1,4 @@
-\
+
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
